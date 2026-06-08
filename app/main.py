@@ -38,6 +38,15 @@ ASMX_DIRECT_JSON_METHODS = {
 }
 
 
+def add_cors_headers(request: Request, response: Response) -> Response:
+    origin = request.headers.get("origin")
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Vary"] = "Origin"
+    return response
+
+
 @app.middleware("http")
 async def wrap_asmx_json_as_xml(request: Request, call_next: Callable[..., Any]) -> Response:
     response = await call_next(request)
@@ -51,10 +60,13 @@ async def wrap_asmx_json_as_xml(request: Request, call_next: Callable[..., Any])
         body += chunk
     method = request.url.path.rstrip("/").rsplit("/", 1)[-1].lower()
     if method in ASMX_DIRECT_JSON_METHODS:
-        return Response(
+        return add_cors_headers(
+            request,
+            Response(
             content=body,
             media_type="text/json; charset=utf-8",
             status_code=response.status_code,
+            ),
         )
 
     json_text = body.decode("utf-8")
@@ -62,7 +74,10 @@ async def wrap_asmx_json_as_xml(request: Request, call_next: Callable[..., Any])
         '<?xml version="1.0" encoding="utf-8"?>\r\n'
         f'<string xmlns="http://tempuri.org/">{html.escape(json_text, quote=False)}</string>'
     )
-    return Response(content=xml, media_type="text/xml; charset=utf-8", status_code=response.status_code)
+    return add_cors_headers(
+        request,
+        Response(content=xml, media_type="text/xml; charset=utf-8", status_code=response.status_code),
+    )
 
 
 def legacy_route(name: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:

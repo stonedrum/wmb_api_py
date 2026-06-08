@@ -121,6 +121,9 @@ def list_orders(
     if statuses:
         where.append(f"b_sstatus IN ({','.join(['%s'] * len(statuses))})")
         params.extend(statuses)
+    if booktype == 1:
+        where.append("b_gettype=%s")
+        params.append(1)
     if booktype in {3, 4} and dname:
         where.append("b_dname=%s")
         params.append(dname)
@@ -132,7 +135,13 @@ def list_orders(
     else:
         order_by = "b_sstatus DESC, b_addtime DESC"
     return db.fetch_all(
-        f"SELECT {ORDER_FIELDS} FROM tb_book WHERE {' AND '.join(where)} ORDER BY {order_by}",
+        f"""
+        SELECT {ORDER_FIELDS}
+        FROM tb_book
+        WHERE {' AND '.join(where)}
+          AND b_pkid=(SELECT MAX(b1.b_pkid) FROM tb_book b1 WHERE b1.b_id=tb_book.b_id)
+        ORDER BY {order_by}
+        """,
         tuple(params),
     )
 
@@ -275,6 +284,7 @@ def sum_info(pointcode: str, dcode: str, start: datetime, end: datetime) -> dict
         WHERE b_dpcode=%s AND b_sstatus IN (4, 5)
           AND b_deliveredtime BETWEEN %s AND %s
           AND (%s='' OR b_dname=%s)
+          AND b_pkid=(SELECT MAX(b1.b_pkid) FROM tb_book b1 WHERE b1.b_id=tb_book.b_id)
         """,
         (pointcode, start, end, dcode, dcode),
     ) or {"sumMoney": 0, "sumOrderCount": 0, "sumItemsCount": 0}
@@ -289,6 +299,7 @@ def product_sales(pointcode: str, dcode: str, start: datetime, end: datetime) ->
         WHERE b.b_dpcode=%s AND b.b_sstatus IN (4, 5)
           AND b.b_deliveredtime BETWEEN %s AND %s
           AND (%s='' OR b.b_dname=%s)
+          AND b.b_pkid=(SELECT MAX(b1.b_pkid) FROM tb_book b1 WHERE b1.b_id=b.b_id)
         GROUP BY bc.bc_name
         ORDER BY Count DESC
         """,
@@ -305,7 +316,9 @@ def new_order_count(pointcode: str, since: datetime) -> int:
         SELECT COUNT(*) AS cnt
         FROM tb_book
         WHERE b_dpcode=%s AND b_sstatus IN (1, 2, 3)
+          AND b_gettype=1
           AND b_addtime BETWEEN %s AND %s
+          AND b_pkid=(SELECT MAX(b1.b_pkid) FROM tb_book b1 WHERE b1.b_id=tb_book.b_id)
         """,
         (pointcode, since, datetime.now()),
     )
