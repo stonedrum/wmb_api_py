@@ -1,9 +1,6 @@
 # waimaibaoApiPy
 
-用 FastAPI 重构 `参考/WaimaibaoApi` 的 ASMX 后端接口。接口尽量保持原 C# 方法名、参数名和 JSON 返回字段大小写一致，同时支持两种路径：
-
-- `/login`
-- `/WebService.asmx/login`
+用 FastAPI 重构 `参考/WaimaibaoApi` 的配送员端后端接口。
 
 ## 运行
 
@@ -18,36 +15,55 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 项目直接读取环境变量。可以参考 `.env.example` 配置数据库、token、APP 展示设置和上传地址。
 
-## 已实现的兼容接口
+## 响应格式
 
-- `login`
-- `getOrderList`
-- `getOrderDetail`
-- `getSumInfo`
-- `getSumInfoNew`
-- `getProdctSales`，并额外兼容修正拼写的 `getProductSales`
-- `GetReasons`
-- `GetSetting`
-- `setStatus`
-- `hasNewOrders`
-- `RefuseOrder`
-- `GetImgUrl`
-- `UpdateFile`
-- `Callback`、`SendMsg`、`SendMsg2`：保留接口形状，但云通讯 SDK 未接入，会返回失败说明
+所有接口统一返回 JSON：
 
-## 订单回桶接口
+```json
+{
+  "success": true,
+  "message": "",
+  "data": {}
+}
+```
 
-全局回桶设置，保存到 `data/bucket_setting.json`：
+失败时 `success` 为 `false`，`message` 为错误说明。
+
+## 接口列表
+
+- `GET/POST /login` — `data.user`
+- `GET/POST /getOrderList` — `data.orders`
+- `GET/POST /getOrderDetail` — `data.order`
+- `POST /setStatus`
+- `GET/POST /getSumInfo` — `data.summary`
+- `GET/POST /getSumInfoNew` — `data.summary`、`data.products`
+- `GET/POST /getProductSales` — `data.products`
+- `GET/POST /GetReasons` — `data.reasons`
+- `GET/POST /GetSetting` — `data.setting`
+- `GET/POST /hasNewOrders` — `data.count`
+- `POST /RefuseOrder`
+- `GET/POST /GetImgUrl` — `data.url`
+- `POST /UpdateFile` — `data.url`
+- `GET/POST /GetBucketSetting` — `data.setting`
+- `POST /SetBucketSetting` — `data.setting`
+- `GET/POST /GetOrderBucketSetting` — `data` 含 `OrderID`、`retbottles`
+- `POST /SetOrderBucketSetting`
+
+请求参数与原 C# 方法名、字段名保持一致（如 `token`、`pointcode`、`booktype`）。
+
+## 订单回桶
+
+全局回桶设置保存到 `data/bucket_setting.json`：
 
 ```bash
-curl "http://127.0.0.1:8000/SetBucketSetting?token=123&enabled=true&defaultRetBottles=1&requireRetBottles=false&memo=test"
+curl -X POST "http://127.0.0.1:8000/SetBucketSetting" -d "token=123&enabled=true&defaultRetBottles=1&requireRetBottles=false&memo=test"
 curl "http://127.0.0.1:8000/GetBucketSetting?token=123"
 ```
 
-单订单回桶设置，写入 `tb_book.b_retbottles`：
+单订单回桶写入 `tb_book.b_retbottles`：
 
 ```bash
-curl "http://127.0.0.1:8000/SetOrderBucketSetting?token=123&orderid=W00126060500000101&retbottles=2"
+curl -X POST "http://127.0.0.1:8000/SetOrderBucketSetting" -d "token=123&orderid=W00126060500000101&retbottles=2"
 curl "http://127.0.0.1:8000/GetOrderBucketSetting?token=123&orderid=W00126060500000101"
 ```
 
