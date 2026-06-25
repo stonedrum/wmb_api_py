@@ -31,23 +31,27 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ## 接口列表
 
-- `GET/POST /login` — `data.user`
-- `GET/POST /getOrderList` — `data.orders`
-- `GET/POST /getOrderDetail` — `data.order`
-- `POST /setStatus`
-- `GET/POST /getSumInfo` — `data.summary`
-- `GET/POST /getSumInfoNew` — `data.summary`、`data.products`
-- `GET/POST /getProductSales` — `data.products`
-- `GET/POST /GetReasons` — `data.reasons`
-- `GET/POST /GetSetting` — `data.setting`
-- `GET/POST /hasNewOrders` — `data.count`
-- `POST /RefuseOrder`
-- `GET/POST /GetImgUrl` — `data.url`
-- `POST /UpdateFile` — `data.url`
-- `GET/POST /GetBucketSetting` — `data.setting`
-- `POST /SetBucketSetting` — `data.setting`
-- `GET/POST /GetOrderBucketSetting` — `data` 含 `OrderID`、`retbottles`
-- `POST /SetOrderBucketSetting`
+所有业务接口统一前缀 **`/api`**，文档地址 **`/api/docs`**。
+
+- `GET/POST /api/login` — `data.user`
+- `GET/POST /api/getOrderList` — `data.orders`
+- `GET/POST /api/getOrderDetail` — `data.order`
+- `POST /api/setStatus`
+- `GET/POST /api/getSumInfo` — `data.summary`
+- `GET/POST /api/getSumInfoNew` — `data.summary`、`data.products`
+- `GET/POST /api/getProductSales` — `data.products`
+- `GET/POST /api/GetReasons` — `data.reasons`
+- `GET/POST /api/GetSetting` — `data.setting`
+- `GET/POST /api/hasNewOrders` — `data.count`
+- `POST /api/RefuseOrder`
+- `GET/POST /api/GetImgUrl` — `data.url`
+- `POST /api/UpdateFile` — `data.url`
+- `GET/POST /api/GetBucketSetting` — `data.setting`
+- `POST /api/SetBucketSetting` — `data.setting`
+- `GET/POST /api/GetOrderBucketSetting` — `data` 含 `OrderID`、`retbottles`
+- `POST /api/SetOrderBucketSetting`
+
+健康检查：`GET /health`（无 `/api` 前缀）
 
 请求参数与原 C# 方法名、字段名保持一致（如 `token`、`pointcode`、`booktype`）。
 
@@ -56,15 +60,15 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 全局回桶设置保存到 `data/bucket_setting.json`：
 
 ```bash
-curl -X POST "http://127.0.0.1:8000/SetBucketSetting" -d "token=123&enabled=true&defaultRetBottles=1&requireRetBottles=false&memo=test"
-curl "http://127.0.0.1:8000/GetBucketSetting?token=123"
+curl -X POST "http://127.0.0.1:8118/api/SetBucketSetting" -d "token=123&enabled=true&defaultRetBottles=1&requireRetBottles=false&memo=test"
+curl "http://127.0.0.1:8118/api/GetBucketSetting?token=123"
 ```
 
 单订单回桶写入 `tb_book.b_retbottles`：
 
 ```bash
-curl -X POST "http://127.0.0.1:8000/SetOrderBucketSetting" -d "token=123&orderid=W00126060500000101&retbottles=2"
-curl "http://127.0.0.1:8000/GetOrderBucketSetting?token=123&orderid=W00126060500000101"
+curl -X POST "http://127.0.0.1:8118/api/SetOrderBucketSetting" -d "token=123&orderid=W00126060500000101&retbottles=2"
+curl "http://127.0.0.1:8118/api/GetOrderBucketSetting?token=123&orderid=W00126060500000101"
 ```
 
 ## 数据库说明

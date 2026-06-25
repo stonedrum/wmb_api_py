@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs
 
-from fastapi import FastAPI, Request
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image
@@ -17,7 +17,14 @@ from .config import settings
 from .response import api_fail, api_ok
 from .time_utils import parse_legacy_datetime, start_end_for_span
 
-app = FastAPI(title="Waimaibao API", version="0.2.0")
+app = FastAPI(
+    title="Waimaibao API",
+    version="0.2.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
+)
+api = APIRouter(prefix="/api")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -84,7 +91,7 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.api_route("/login", methods=["GET", "POST"])
+@api.api_route("/login", methods=["GET", "POST"])
 async def login(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -98,7 +105,7 @@ async def login(request: Request) -> JSONResponse:
     return api_ok({"user": user})
 
 
-@app.api_route("/getOrderList", methods=["GET", "POST"])
+@api.api_route("/getOrderList", methods=["GET", "POST"])
 async def get_order_list(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -137,7 +144,7 @@ async def get_order_list(request: Request) -> JSONResponse:
     )
 
 
-@app.api_route("/getOrderDetail", methods=["GET", "POST"])
+@api.api_route("/getOrderDetail", methods=["GET", "POST"])
 async def get_order_detail(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -156,7 +163,7 @@ async def get_order_detail(request: Request) -> JSONResponse:
     )
 
 
-@app.post("/setStatus")
+@api.post("/setStatus")
 async def set_status(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -175,7 +182,7 @@ async def set_status(request: Request) -> JSONResponse:
     return api_ok(message=msg)
 
 
-@app.api_route("/getSumInfo", methods=["GET", "POST"])
+@api.api_route("/getSumInfo", methods=["GET", "POST"])
 async def get_sum_info(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -184,7 +191,7 @@ async def get_sum_info(request: Request) -> JSONResponse:
     return await _sum_response(data, start, end, include_products=False)
 
 
-@app.api_route("/getSumInfoNew", methods=["GET", "POST"])
+@api.api_route("/getSumInfoNew", methods=["GET", "POST"])
 async def get_sum_info_new(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -221,7 +228,7 @@ async def _sum_response(
     )
 
 
-@app.api_route("/getProductSales", methods=["GET", "POST"])
+@api.api_route("/getProductSales", methods=["GET", "POST"])
 async def get_product_sales(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -234,7 +241,7 @@ async def get_product_sales(request: Request) -> JSONResponse:
     return api_ok({"products": items})
 
 
-@app.api_route("/GetReasons", methods=["GET", "POST"])
+@api.api_route("/GetReasons", methods=["GET", "POST"])
 async def get_reasons(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -246,7 +253,7 @@ async def get_reasons(request: Request) -> JSONResponse:
     return api_ok({"reasons": reasons})
 
 
-@app.api_route("/GetSetting", methods=["GET", "POST"])
+@api.api_route("/GetSetting", methods=["GET", "POST"])
 async def get_setting(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -264,7 +271,7 @@ async def get_setting(request: Request) -> JSONResponse:
     )
 
 
-@app.api_route("/hasNewOrders", methods=["GET", "POST"])
+@api.api_route("/hasNewOrders", methods=["GET", "POST"])
 async def has_new_orders(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -278,7 +285,7 @@ async def has_new_orders(request: Request) -> JSONResponse:
     return api_ok({"count": count})
 
 
-@app.post("/RefuseOrder")
+@api.post("/RefuseOrder")
 async def refuse_order(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -292,7 +299,7 @@ async def refuse_order(request: Request) -> JSONResponse:
     return api_ok(message=msg)
 
 
-@app.api_route("/GetImgUrl", methods=["GET", "POST"])
+@api.api_route("/GetImgUrl", methods=["GET", "POST"])
 async def get_img_url(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -300,7 +307,7 @@ async def get_img_url(request: Request) -> JSONResponse:
     return api_ok({"url": repo.img_url(p_str(data, "orderid"))})
 
 
-@app.post("/UpdateFile")
+@api.post("/UpdateFile")
 async def update_file(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -341,7 +348,7 @@ def _save_image(content: str, orderid: str) -> str:
     return f"/Upload/{yymmdd}/{orderid}.jpg"
 
 
-@app.api_route("/GetBucketSetting", methods=["GET", "POST"])
+@api.api_route("/GetBucketSetting", methods=["GET", "POST"])
 async def get_bucket_setting(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -349,7 +356,7 @@ async def get_bucket_setting(request: Request) -> JSONResponse:
     return api_ok({"setting": _read_bucket_setting()})
 
 
-@app.post("/SetBucketSetting")
+@api.post("/SetBucketSetting")
 async def set_bucket_setting(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -368,7 +375,7 @@ async def set_bucket_setting(request: Request) -> JSONResponse:
     return api_ok({"setting": setting}, message="订单回桶设置已保存.")
 
 
-@app.api_route("/GetOrderBucketSetting", methods=["GET", "POST"])
+@api.api_route("/GetOrderBucketSetting", methods=["GET", "POST"])
 async def get_order_bucket_setting(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -382,7 +389,7 @@ async def get_order_bucket_setting(request: Request) -> JSONResponse:
     return api_ok(setting)
 
 
-@app.post("/SetOrderBucketSetting")
+@api.post("/SetOrderBucketSetting")
 async def set_order_bucket_setting(request: Request) -> JSONResponse:
     data = await params(request)
     if not token_ok(p_str(data, "token")):
@@ -413,3 +420,6 @@ def _read_bucket_setting() -> dict[str, Any]:
         return {**default, **json.loads(path.read_text(encoding="utf-8"))}
     except json.JSONDecodeError:
         return default
+
+
+app.include_router(api)
