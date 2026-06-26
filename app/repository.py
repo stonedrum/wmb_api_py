@@ -122,8 +122,8 @@ def list_orders(
         where.append(f"b_sstatus IN ({','.join(['%s'] * len(statuses))})")
         params.extend(statuses)
     if booktype == 1:
-        where.append("b_gettype=%s")
-        params.append(1)
+        where.append("b_gettype<>%s")
+        params.append(2)
     if booktype in {3, 4} and dname:
         where.append("b_dname=%s")
         params.append(dname)
@@ -316,7 +316,7 @@ def new_order_count(pointcode: str, since: datetime) -> int:
         SELECT COUNT(*) AS cnt
         FROM tb_book
         WHERE b_dpcode=%s AND b_sstatus IN (1, 2, 3)
-          AND b_gettype=1
+          AND b_gettype<>2
           AND b_addtime BETWEEN %s AND %s
           AND b_pkid=(SELECT MAX(b1.b_pkid) FROM tb_book b1 WHERE b1.b_id=tb_book.b_id)
         """,
