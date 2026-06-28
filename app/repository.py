@@ -129,7 +129,7 @@ def list_orders(
         params.append(dname)
 
     if booktype == 1:
-        order_by = "b_addtime DESC"
+        order_by = "b_sstatus DESC, b_addtime DESC"
     elif booktype == 4:
         order_by = "b_sstatus DESC, b_deliveredtime DESC"
     else:
