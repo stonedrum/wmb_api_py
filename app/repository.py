@@ -111,7 +111,7 @@ def list_orders(
     dname: str = "",
 ) -> list[dict[str, Any]]:
     statuses = {
-        1: [1],
+        1: [1, 2],
         3: [3],
         4: [4, 5],
     }.get(booktype, [])
