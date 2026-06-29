@@ -6,11 +6,12 @@ from typing import Any
 
 from . import db
 from .config import settings
+from .integrations import notify_complete_order
 from .time_utils import fmt_dt
 
 
 ORDER_FIELDS = """
-    b_pkid, b_id, b_iduse, b_dpcode, b_dpname, b_pmname, b_address, b_phone,
+    b_pkid, b_id, b_iduse, b_dpcode, b_dpname, b_pmname, b_zname, b_address, b_phone,
     b_person, b_pcount, b_money, b_realmoney, b_othermoney, b_delivermoney,
     b_needmoney, b_addtime, b_requesttime, b_bstatus, b_sstatus, b_dname,
     b_uname, b_urgetimes, b_memo, b_checktype, virtualtel, b_getordertime,
@@ -261,6 +262,10 @@ def set_order_status(orderid: str, status: int, dname: str, user: str = "") -> t
         )
     except Exception:
         pass
+
+    if status == 4:
+        notify_complete_order(str(order.get("b_zname") or ""))
+
     return True, "订单状态已更新."
 
 

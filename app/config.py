@@ -56,6 +56,15 @@ class Settings:
     public_upload_detail_base_url: str = _str_env(
         "WMB_PUBLIC_UPLOAD_DETAIL_BASE_URL", "http://ps.hz88885678.cn:8899"
     ).rstrip("/")
+
+    # 送达后通知外部 complete_order 接口（旧版 WebService status=4）
+    complete_order_enabled: bool = _bool_env("WMB_COMPLETE_ORDER_ENABLED", True)
+    complete_order_base_url: str = _str_env(
+        "WMB_COMPLETE_ORDER_BASE_URL", "http://47.96.228.110:8088"
+    ).rstrip("/")
+    complete_order_min_zname_len: int = _int_env("WMB_COMPLETE_ORDER_MIN_ZNAME_LEN", 10)
+    complete_order_timeout: int = _int_env("WMB_COMPLETE_ORDER_TIMEOUT", 10)
+
     project_root: Path = Path(__file__).resolve().parents[1]
 
     @property

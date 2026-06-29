@@ -36,7 +36,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 - `GET/POST /api/login` — `data.user`
 - `GET/POST /api/getOrderList` — `data.orders`
 - `GET/POST /api/getOrderDetail` — `data.order`
-- `POST /api/setStatus`
+- `POST /api/setStatus` — 送达（status=4）且 `b_zname` 长度 > 10 时，会 POST 通知 `{WMB_COMPLETE_ORDER_BASE_URL}/complete_order/{b_zname}`
 - `GET/POST /api/getSumInfo` — `data.summary`
 - `GET/POST /api/getSumInfoNew` — `data.summary`、`data.products`
 - `GET/POST /api/getProductSales` — `data.products`
